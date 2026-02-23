@@ -1,0 +1,497 @@
+{
+  "rules_version": "1.2",
+  "applies_to": "Car Lease SLA",
+  "processed_at": "2026-02-08T00:00:00",
+  "fields": [
+    {
+      "field": "apr",
+      "field_type": "numeric",
+      "unit": "%",
+      "normalized_unit": "%",
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "high",
+          "issue": "APR not disclosed",
+          "negotiation_intent": "Request APR disclosure",
+          "reason": "Interest rate mandatory for cost evaluation.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "<=6",
+          "condition_type": "numeric",
+          "severity": "none",
+          "issue": "Excellent APR",
+          "negotiation_intent": null,
+          "reason": "Competitive interest rate.",
+          "regex_patterns": null,
+          "numeric_value": 6.0,
+          "numeric_range": null
+        },
+        {
+          "condition": "6-8",
+          "condition_type": "range",
+          "severity": "low",
+          "issue": "Moderate APR",
+          "negotiation_intent": "Request small APR reduction",
+          "reason": "Slightly above optimal range.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": [6.0, 8.0]
+        },
+        {
+          "condition": ">8",
+          "condition_type": "numeric",
+          "severity": "high",
+          "issue": "High APR",
+          "negotiation_intent": "Negotiate lower APR",
+          "reason": "Significantly increases total lease cost.",
+          "regex_patterns": null,
+          "numeric_value": 8.0,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "lease_term_months",
+      "field_type": "numeric",
+      "unit": "months",
+      "normalized_unit": "months",
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "medium",
+          "issue": "Lease duration missing",
+          "negotiation_intent": "Request lease duration clarification",
+          "reason": "Essential for total cost calculation.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "<12",
+          "condition_type": "numeric",
+          "severity": "medium",
+          "issue": "Unusually short lease",
+          "negotiation_intent": "Extend to standard duration",
+          "reason": "Increases monthly payment burden.",
+          "regex_patterns": null,
+          "numeric_value": 12.0,
+          "numeric_range": null
+        },
+        {
+          "condition": "12-48",
+          "condition_type": "range",
+          "severity": "none",
+          "issue": "Standard lease term",
+          "negotiation_intent": null,
+          "reason": "Industry typical range.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": [12.0, 48.0]
+        },
+        {
+          "condition": "49-60",
+          "condition_type": "range",
+          "severity": "low",
+          "issue": "Extended lease term",
+          "negotiation_intent": "Confirm long-term suitability",
+          "reason": "Reduces flexibility.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": [49.0, 60.0]
+        },
+        {
+          "condition": ">60",
+          "condition_type": "numeric",
+          "severity": "high",
+          "issue": "Excessively long lease",
+          "negotiation_intent": "Shorten lease duration",
+          "reason": "Risk of overpaying for depreciation.",
+          "regex_patterns": null,
+          "numeric_value": 60.0,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "monthly_payment",
+      "field_type": "numeric",
+      "unit": "USD",
+      "normalized_unit": "USD",
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "high",
+          "issue": "Monthly payment unspecified",
+          "negotiation_intent": "Request payment schedule",
+          "reason": "Core recurring obligation unclear.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "<400",
+          "condition_type": "numeric",
+          "severity": "none",
+          "issue": "Low monthly payment",
+          "negotiation_intent": null,
+          "reason": "Favorable payment structure.",
+          "regex_patterns": null,
+          "numeric_value": 400.0,
+          "numeric_range": null
+        },
+        {
+          "condition": "400-700",
+          "condition_type": "range",
+          "severity": "low",
+          "issue": "Market average payment",
+          "negotiation_intent": null,
+          "reason": "2026 average lease payment ($659).",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": [400.0, 700.0]
+        },
+        {
+          "condition": "701-1000",
+          "condition_type": "range",
+          "severity": "medium",
+          "issue": "High monthly payment",
+          "negotiation_intent": "Negotiate payment reduction",
+          "reason": "Above market average.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": [701.0, 1000.0]
+        },
+        {
+          "condition": ">1000",
+          "condition_type": "numeric",
+          "severity": "high",
+          "issue": "Excessive monthly payment",
+          "negotiation_intent": "Major payment adjustment needed",
+          "reason": "Unaffordable for typical budgets.",
+          "regex_patterns": null,
+          "numeric_value": 1000.0,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "down_payment",
+      "field_type": "numeric",
+      "unit": "USD_or_percent",
+      "normalized_unit": "USD_or_percent",
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "low",
+          "issue": "Down payment unspecified",
+          "negotiation_intent": "Clarify initial payment",
+          "reason": "Upfront capital requirements unclear.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "0",
+          "condition_type": "numeric",
+          "severity": "none",
+          "issue": "No down payment",
+          "negotiation_intent": null,
+          "reason": "Preserves liquidity.",
+          "regex_patterns": null,
+          "numeric_value": 0.0,
+          "numeric_range": null
+        },
+        {
+          "condition": ">20_percent",
+          "condition_type": "unknown",
+          "severity": "medium",
+          "issue": "High down payment",
+          "negotiation_intent": "Reduce to 10-15% max",
+          "reason": "Excessive upfront capital commitment.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "residual_value",
+      "field_type": "numeric",
+      "unit": "%_of_MSRP",
+      "normalized_unit": "%",
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "medium",
+          "issue": "Residual value undisclosed",
+          "negotiation_intent": "Request residual disclosure",
+          "reason": "Lease-end buyout price unknown.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "<45",
+          "condition_type": "numeric",
+          "severity": "high",
+          "issue": "Low residual value",
+          "negotiation_intent": "Increase to 50-60%",
+          "reason": "Inflates monthly payments.",
+          "regex_patterns": null,
+          "numeric_value": 45.0,
+          "numeric_range": null
+        },
+        {
+          "condition": "45-65",
+          "condition_type": "range",
+          "severity": "none",
+          "issue": "Standard residual",
+          "negotiation_intent": null,
+          "reason": "Industry typical range.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": [45.0, 65.0]
+        },
+        {
+          "condition": ">65",
+          "condition_type": "numeric",
+          "severity": "low",
+          "issue": "High residual value",
+          "negotiation_intent": "Verify market appraisal",
+          "reason": "May exceed actual market value.",
+          "regex_patterns": null,
+          "numeric_value": 65.0,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "mileage_allowance",
+      "field_type": "numeric",
+      "unit": "miles_per_year",
+      "normalized_unit": "miles",
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "medium",
+          "issue": "Mileage limit unspecified",
+          "negotiation_intent": "Specify mileage allowance",
+          "reason": "Excess mileage penalty exposure unknown.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "<10000",
+          "condition_type": "numeric",
+          "severity": "high",
+          "issue": "Restrictive mileage allowance",
+          "negotiation_intent": "Increase to 12,000+ miles",
+          "reason": "Below average annual driving (12k miles).",
+          "regex_patterns": null,
+          "numeric_value": 10000.0,
+          "numeric_range": null
+        },
+        {
+          "condition": "10000-15000",
+          "condition_type": "range",
+          "severity": "none",
+          "issue": "Standard mileage allowance",
+          "negotiation_intent": null,
+          "reason": "Matches typical driving patterns.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": [10000.0, 15000.0]
+        },
+        {
+          "condition": ">15000",
+          "condition_type": "numeric",
+          "severity": "low",
+          "issue": "Generous mileage allowance",
+          "negotiation_intent": null,
+          "reason": "Low penalty risk for high drivers.",
+          "regex_patterns": null,
+          "numeric_value": 15000.0,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "late_fees",
+      "field_type": "text",
+      "unit": null,
+      "normalized_unit": null,
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "medium",
+          "issue": "Late payment penalties undefined",
+          "negotiation_intent": "Define reasonable late fees",
+          "reason": "Penalty exposure unclear.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "regex:%ANDfixed",
+          "condition_type": "regex",
+          "severity": "high",
+          "issue": "Double late fee structure",
+          "negotiation_intent": "Use single penalty method",
+          "reason": "Both percentage AND fixed fee applied.",
+          "regex_patterns": ["%ANDfixed"],
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "regex:interest_on_late",
+          "condition_type": "regex",
+          "severity": "high",
+          "issue": "Compounding late fees",
+          "negotiation_intent": "Remove penalty interest",
+          "reason": "Interest charged on penalties.",
+          "regex_patterns": ["interest_on_late"],
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": ">10_percent",
+          "condition_type": "unknown",
+          "severity": "medium",
+          "issue": "Excessive late fee rate",
+          "negotiation_intent": "Cap at 8% max",
+          "reason": "Above industry standard (5-8%).",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "early_termination_clause",
+      "field_type": "text",
+      "unit": null,
+      "normalized_unit": null,
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "high",
+          "issue": "No early termination terms",
+          "negotiation_intent": "Define reasonable exit terms",
+          "reason": "Exit strategy undefined.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "regex:full_balance_due",
+          "condition_type": "regex",
+          "severity": "high",
+          "issue": "Full remaining balance required",
+          "negotiation_intent": "Cap at 3 months payments",
+          "reason": "Financially punitive termination.",
+          "regex_patterns": ["full_balance_due"],
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "regex:multiple_fees",
+          "condition_type": "regex",
+          "severity": "medium",
+          "issue": "Complex penalty structure",
+          "negotiation_intent": "Simplify to single fee",
+          "reason": "Multiple stacked termination fees.",
+          "regex_patterns": ["multiple_fees"],
+          "numeric_value": null,
+          "numeric_range": null
+        }
+      ]
+    },
+    {
+      "field": "purchase_option",
+      "field_type": "text",
+      "unit": null,
+      "normalized_unit": null,
+      "scenarios": [
+        {
+          "condition": "missing",
+          "condition_type": "missing",
+          "severity": "low",
+          "issue": "Purchase terms unclear",
+          "negotiation_intent": "Specify buyout process",
+          "reason": "End-of-lease ownership path undefined.",
+          "regex_patterns": null,
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "regex:inspection_required",
+          "condition_type": "regex",
+          "severity": "medium",
+          "issue": "Strict purchase conditions",
+          "negotiation_intent": "Simplify to residual + tax",
+          "reason": "Multiple approval hurdles for buyout.",
+          "regex_patterns": ["inspection_required"],
+          "numeric_value": null,
+          "numeric_range": null
+        },
+        {
+          "condition": "regex:no_purchase",
+          "condition_type": "regex",
+          "severity": "medium",
+          "issue": "Purchase option excluded",
+          "negotiation_intent": "Add standard buyout clause",
+          "reason": "Limits ownership flexibility.",
+          "regex_patterns": ["no_purchase"],
+          "numeric_value": null,
+          "numeric_range": null
+        }
+      ]
+    }
+  ],
+  "standards": {
+    "apr_ranges": {
+      "excellent": "<=6%",
+      "good": "6-8%",
+      "high": ">8%"
+    },
+    "lease_terms": {
+      "standard": "12-48 months",
+      "short": "<12 months",
+      "long": ">48 months"
+    },
+    "monthly_payment_2026": {
+      "low": "<$400",
+      "average": "$400-700",
+      "high": "$700-1000",
+      "excessive": ">$1000"
+    },
+    "down_payment_percent": {
+      "none": "0%",
+      "standard": "0-20%",
+      "high": ">20%"
+    },
+    "residual_value_percent": {
+      "low": "<45%",
+      "standard": "45-65%",
+      "high": ">65%"
+    },
+    "mileage_per_year": {
+      "low": "<10000",
+      "standard": "10000-15000",
+      "high": ">15000"
+    }
+  }
+}
