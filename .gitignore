@@ -1,0 +1,4 @@
+__pycache__/
+*.db
+.DS_Store
+uploaded_contracts/

@@ -1,0 +1,170 @@
+[
+  {
+    "field": "interest_rate_apr",
+    "label": "Interest Rate (APR)",
+    "scenarios": [
+      {
+        "condition": "missing",
+        "severity": "high",
+        "issue": "APR / Money Factor Hidden",
+        "negotiation_intent": "Demand transparency on the exact APR or Money Factor used."
+      },
+      {
+        "condition": "> 9.0",
+        "severity": "high",
+        "issue": "High Interest Rate (> 9%)",
+        "negotiation_intent": "Negotiate a lower rate or propose using external financing."
+      }
+    ]
+  },
+  {
+    "field": "lease_term_months",
+    "label": "Lease Term",
+    "scenarios": [
+      {
+        "condition": "> 48",
+        "severity": "high",
+        "issue": "Long Term (> 48 Months)",
+        "negotiation_intent": "Shorten term to 36 months to match warranty coverage and avoid negative equity."
+      },
+      {
+        "condition": "< 24",
+        "severity": "medium",
+        "issue": "Short Term (< 24 Months)",
+        "negotiation_intent": "Request a standard 36-month quote to potentially lower monthly payments."
+      }
+    ]
+  },
+  {
+    "field": "monthly_payment",
+    "label": "Monthly Payment",
+    "scenarios": [
+      {
+        "condition": "missing",
+        "severity": "high",
+        "issue": "Monthly Payment Not Specified",
+        "negotiation_intent": "Do not proceed until the exact monthly obligation is written in the contract."
+      }
+    ]
+  },
+  {
+    "field": "down_payment",
+    "label": "Down Payment (Cap Cost Reduction)",
+    "scenarios": [
+      {
+        "condition": "> 50000",
+        "severity": "medium",
+        "issue": "High Upfront Risk",
+        "negotiation_intent": "Negotiate to reduce Cap Cost Reduction to zero to minimize risk if the car is totaled."
+      }
+    ]
+  },
+  {
+    "field": "mileage_allowance",
+    "label": "Annual Mileage",
+    "scenarios": [
+      {
+        "condition": "< 10000",
+        "severity": "high",
+        "issue": "Restrictive Mileage (< 10k/yr)",
+        "negotiation_intent": "Increase mileage limit to 12,000 or 15,000 to avoid end-of-lease penalties."
+      }
+    ]
+  },
+  {
+    "field": "mileage_overage_charge",
+    "label": "Excess Mileage Fee",
+    "scenarios": [
+      {
+        "condition": "> 15",
+        "severity": "medium",
+        "issue": "High Overage Fee (> ₹15/km)",
+        "negotiation_intent": "Negotiate the excess mileage fee down to a standard rate (e.g., ₹8-10/km)."
+      }
+    ]
+  },
+  {
+    "field": "buyout_price",
+    "label": "Purchase Option (Residual)",
+    "scenarios": [
+      {
+        "condition": "missing",
+        "severity": "high",
+        "issue": "Buyout Price Undefined",
+        "negotiation_intent": "Request a fixed dollar amount for the purchase option, not 'Market Value'."
+      }
+    ]
+  },
+  {
+    "field": "early_termination_fee",
+    "label": "Early Termination",
+    "scenarios": [
+      {
+        "condition": "contains_all_payments",
+        "severity": "high",
+        "issue": "Liable for All Remaining Payments",
+        "negotiation_intent": "Request a standard termination fee clause rather than full liability for remaining months."
+      }
+    ]
+  },
+  {
+    "field": "maintenance_responsibilities",
+    "label": "Maintenance",
+    "scenarios": [
+      {
+        "condition": "lessee_pays_all",
+        "severity": "medium",
+        "issue": "Lessee Pays 100% Maintenance",
+        "negotiation_intent": "Ask for a complimentary maintenance package to be included for the first 2 years."
+      }
+    ]
+  },
+  {
+    "field": "warranty_coverage",
+    "label": "Warranty",
+    "scenarios": [
+      {
+        "condition": "missing",
+        "severity": "high",
+        "issue": "Warranty Details Missing",
+        "negotiation_intent": "Confirm factory warranty coverage and ensure it matches the lease duration."
+      }
+    ]
+  },
+  {
+    "field": "late_fee_policy",
+    "label": "Late Fee Policy",
+    "scenarios": [
+      {
+        "condition": "strict_grace_period",
+        "severity": "medium",
+        "issue": "Strict Grace Period (< 5 Days)",
+        "negotiation_intent": "Request a 7-10 day grace period for payments."
+      }
+    ]
+  },
+  {
+    "field": "recalls_text",
+    "label": "Safety Recalls",
+    "scenarios": [
+      {
+        "condition": "found",
+        "severity": "high",
+        "issue": "Open Safety Recall Detected",
+        "negotiation_intent": "Demand proof that the safety recall has been remedied before signing."
+      }
+    ]
+  },
+  {
+    "field": "vehicle_year",
+    "label": "Vehicle Year",
+    "scenarios": [
+      {
+        "condition": "< 2024",
+        "severity": "medium",
+        "issue": "Older Model Year",
+        "negotiation_intent": "Request a larger discount on Cap Cost due to existing depreciation."
+      }
+    ]
+  }
+]
