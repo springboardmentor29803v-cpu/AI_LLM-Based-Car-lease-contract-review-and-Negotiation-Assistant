@@ -20,7 +20,6 @@ def get_market_data(vin: str, mileage: int = 12000) -> dict:
             
             print(f"Decoded: {year} {make} {model}")
             
-            # Call 2 - Search active listings
             search_url = "https://mc-api.marketcheck.com/v2/search/car/active"
             search_params = {
                 "api_key": api_key,
@@ -49,7 +48,6 @@ def get_market_data(vin: str, mileage: int = 12000) -> dict:
     except Exception as e:
         print(f"MarketCheck error: {e}")
     
-    # Fallback
     vehicle_info = decode_vin_nhtsa(vin)
     base_price_usd = calculate_dynamic_base_price(
         vehicle_info.get('make', 'Toyota'),
@@ -83,4 +81,5 @@ def calculate_dynamic_base_price(make: str, model: str, year: int) -> float:
     factor = luxury_brands.get(make.upper(), 1.0)
     age = 2026 - year
     depreciation = max(0.4, 1 - (age * 0.05))
+
     return 30000 * factor * depreciation
