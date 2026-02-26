@@ -83,3 +83,4 @@ def calculate_dynamic_base_price(make: str, model: str, year: int) -> float:
     depreciation = max(0.4, 1 - (age * 0.05))
 
     return 30000 * factor * depreciation
+
