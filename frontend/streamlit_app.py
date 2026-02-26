@@ -2,7 +2,11 @@ import streamlit as st
 import requests
 import uuid
 from datetime import datetime
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
+# --- CONFIGURATION ---
 BASE_URL = "http://localhost:8000"
 
 st.set_page_config(
@@ -91,6 +95,12 @@ if "contract_profile" not in st.session_state:
     st.session_state.contract_profile = None
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "sla_id" not in st.session_state:
+    st.session_state.sla_id = None
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = None
+if "analysis" not in st.session_state:
+    st.session_state.analysis = None
 
 # --- HELPER FUNCTION ---
 def generate_demo_response(prompt):
@@ -103,82 +113,20 @@ def generate_demo_response(prompt):
         sla = st.session_state.contract_profile.get('sla', {})
     
     # Use actual values from contract or "Not specified"
-    apr = sla.get('apr', 'Not specified')
+    apr = sla.get('apr_percent', 'Not specified')
     monthly = sla.get('monthly_payment', 'Not specified')
-    mileage = sla.get('mileage_allowance', 'Not specified')
+    mileage = sla.get('mileage_allowance_yr', 'Not specified')
     
     if "apr" in prompt_lower or "interest" in prompt_lower:
-        if apr != 'Not specified':
-            return f"""Your contract shows an APR of **{apr}**, which is higher than the current market average of 3.5%-4.5% for customers with good credit. 
-
-To negotiate this rate, start by asking the dealer which credit tier this rate corresponds to and request to see the money factor calculation. It's helpful to mention that you've received lower rate quotes from other lenders or banks. Also inquire about any manufacturer financing promotions that might be available. 
-
-Remember that increasing your down payment can sometimes help lower the APR, and consider getting pre-approved from a credit union to use as leverage in your negotiations."""
-        else:
-            return """When negotiating APR, it's important to first check your credit score since rates vary significantly by credit tier. Get pre-approved from a bank or credit union before visiting the dealership so you have a baseline offer. 
-
-Ask the dealer for the money factor (which you can multiply by 2400 to get the equivalent APR) and research current manufacturer promotions. Focus on negotiating the vehicle price first before discussing financing terms, as this gives you more flexibility. 
-
-Consider asking about the option of making multiple security deposits, which can sometimes lower your interest rate on a lease."""
-    
+        return f"Your contract shows an APR of **{apr}**. Ask the dealer for the money factor calculation and mention you've received lower quotes from other lenders. Getting pre-approved from a credit union gives you strong leverage."
     elif "mileage" in prompt_lower:
-        if mileage != 'Not specified':
-            return f"""Your contract specifies a mileage allowance of **{mileage}** per year. 
-
-When discussing mileage with the dealer, first calculate your actual annual driving needs including your daily commute and any planned road trips. Ask about the overage charges per mile (typically $0.15-$0.25) and inquire about the cost to increase your allowance upfront, as purchasing extra miles at signing is usually 30-50% cheaper than paying overages later. 
-
-Some leasing companies offer mileage forgiveness programs or the option to adjust your allowance mid-lease, so it's worth asking about these possibilities."""
-        else:
-            return """For mileage negotiations, start by calculating your actual driving needs based on your daily commute and annual travel plans. The standard mileage options are usually 10,000, 12,000, or 15,000 miles per year. 
-
-Ask the dealer upfront about their overage charges per mile and whether they offer any mileage forgiveness (some allow a small overage without penalty). Consider that buying extra miles at the beginning of your lease is significantly cheaper than paying per-mile overages at the end. 
-
-If your driving patterns change during the lease, some companies allow you to adjust your mileage allowance mid-term, though there may be fees involved."""
-    
+        return f"Your contract has **{mileage}** miles/year. Buying extra miles upfront is 30-50% cheaper than paying overages later. Ask about the per-mile overage charge now."
     elif "monthly" in prompt_lower or "payment" in prompt_lower:
-        if monthly != 'Not specified':
-            return f"""Your contract shows a monthly payment of **{monthly}**. 
-
-When negotiating payments, ask the dealer for a complete breakdown showing how this amount is calculated, including the vehicle price (capitalized cost), money factor, residual value, and all fees. Inquire which fees are negotiable, such as documentation or acquisition fees. 
-
-Request to see payment scenarios with different down payment amounts, and ask about the option of making multiple security deposits which can sometimes lower your monthly payment. Also check if the first payment can be deferred to 45 days after signing rather than due at signing."""
-        else:
-            return """When discussing monthly payments, it's important to focus first on negotiating the vehicle price rather than just the payment amount. Ask the dealer to explain how payments are calculated, including the money factor and residual value percentages. 
-
-Request a detailed breakdown showing all components of the payment. Compare different lease term lengths to see how they affect your monthly amount, and ask about any early termination conditions or fees. 
-
-Consider whether leasing or financing makes more sense for your situation, and don't hesitate to ask the dealer to walk you through multiple payment structure options."""
-    
+        return f"Your monthly payment is **{monthly}**. Ask for a full breakdown: cap cost, money factor, residual value, and all fees. Negotiate the vehicle price first before discussing payments."
     elif "hello" in prompt_lower or "hi" in prompt_lower:
-        # Show summary if contract data exists
-        summary = ""
-        if sla:
-            key_terms = []
-            if apr != 'Not specified':
-                key_terms.append(f"APR: {apr}")
-            if monthly != 'Not specified':
-                key_terms.append(f"Monthly Payment: {monthly}")
-            if mileage != 'Not specified':
-                key_terms.append(f"Mileage: {mileage}")
-            
-            if key_terms:
-                summary = f"\n\nI can see your contract includes: {', '.join(key_terms)}. "
-        
-        return f"""Hello! I'm your AI negotiation assistant designed to help you get the best deal on your car lease.{summary}
-
-I can provide guidance on negotiating various aspects of your lease agreement, including interest rates, monthly payments, mileage allowances, fees, and general negotiation strategies. 
-
-What specific part of your lease would you like help with today?"""
-    
+        return "Hello! I'm your AI negotiation assistant. Ask me about APR, monthly payments, mileage, or any other lease terms you'd like help negotiating."
     else:
-        return f"""I understand you're asking about negotiation strategies for your car lease. 
-
-Effective negotiation begins with thorough research - check market prices on sites like Edmunds and Kelley Blue Book, and get multiple offers from different dealerships. Know your credit score and budget limits before starting discussions. 
-
-Focus on negotiating the vehicle price first before discussing monthly payments or financing terms. Take your time reviewing all fees and don't hesitate to ask for explanations of any charges you don't understand. 
-
-For more specific advice, you can ask me about APR/interest rates, monthly payments, mileage allowances, or any other lease terms you'd like to negotiate."""
-
+        return "For effective negotiation: research market prices on Edmunds and KBB, get multiple offers, know your credit score, and focus on the vehicle price before discussing monthly payments."
 
 # --- SIDEBAR ---
 with st.sidebar:
@@ -192,24 +140,54 @@ with st.sidebar:
     
     menu = st.radio(
         "Navigation",
-        ["🏠 Dashboard", "📄 Contract Analysis", "🆔 VIN Details", "💬 Negotiation Assistant"],
+        ["🏠 Dashboard", "📄 Contract Analysis",  "📊 Market Intelligence","🆔 VIN Details", "💬 Negotiation Assistant"],
         index=0
     )
     
     st.markdown("---")
     
-    if st.session_state.contract_id:
-        st.success("✅ Contract Uploaded")
-        contract_id_str = str(st.session_state.contract_id)
-        st.caption(f"ID: {contract_id_str[:8] if len(contract_id_str) >= 8 else contract_id_str}")
+    if st.session_state.sla_id:
+        st.success("✅ Contract Analyzed")
+        st.caption(f"SLA: {str(st.session_state.sla_id)[:8]}...")
+
     else:
         st.warning("📄 No Contract")
     
+    if st.session_state.analysis:
+        st.success("✅ Market Data Ready")
     st.caption(f"User: {st.session_state.user_id[:8]}")
     st.caption(f"Date: {datetime.now().strftime('%d.%m.%Y')}")
+# ==================== DASHBOARD ====================#
+if menu == "🏠 Dashboard":
+    st.markdown('<div style="text-align:center;padding:20px 0;"><h1>ContractClarity</h1><h3 style="color:#666;font-weight:normal;">AI-Powered Car Lease Analysis & Negotiation</h3></div>', unsafe_allow_html=True)
 
-# ==================== CONTRACT ANALYSIS ====================
-if menu == "📄 Contract Analysis":
+    col1, col2, col3,col4 = st.columns(4)
+    with col1:
+        st.markdown("""<div class="metric-card"><h4>📄 Step 1</h4><p><strong>Contract Analysis</strong><br>Upload your lease PDF to extract all SLA terms automatically.</p></div>""", unsafe_allow_html=True)
+    with col2:
+        st.markdown("""<div class="metric-card"><h4>📊 Step 2</h4><p><strong>Market Intelligence</strong><br>See dealer vs market price comparison and your fairness score.</p></div>""", unsafe_allow_html=True)
+    with col3:
+        st.markdown("""<div class="metric-card"><h4>🆔 Step 3</h4><p><strong>VIN Details</strong><br>Look up vehicle details and recalls from NHTSA.</p></div>""", unsafe_allow_html=True)
+    with col4:
+        st.markdown("""<div class="metric-card"><h4>💬 Step 4</h4><p><strong>Negotiation Assistant</strong><br>Get AI-powered talking points to secure the best deal.</p></div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+    if not st.session_state.sla_id:
+        st.info("📁 No contract uploaded yet. Go to **Contract Analysis** to begin.")
+    else:
+        st.success("✅ Contract analyzed! Go to **Market Intelligence** to see price comparison.")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown('<div class="metric-card"><h4>Document Status</h4><h2 style="color:#10B981;">✅ Analyzed</h2></div>', unsafe_allow_html=True)
+        with col2:
+            market_status = "✅ Ready" if st.session_state.analysis else "⏳ Pending"
+            st.markdown(f'<div class="metric-card"><h4>Market Data</h4><h2>{market_status}</h2></div>', unsafe_allow_html=True)
+        with col3:
+            sla_count = sum(1 for v in st.session_state.contract_profile.get('sla', {}).values() if v not in (None, "", "N/A")) if st.session_state.contract_profile else 0
+            st.markdown(f'<div class="metric-card"><h4>SLA Fields</h4><h2>{sla_count} extracted</h2></div>', unsafe_allow_html=True)
+
+# ==================== CONTRACT ANALYSIS ====================#
+elif menu == "📄 Contract Analysis":
     st.title("Contract Analysis")
     
     st.markdown("### Upload your car lease or loan contract")
@@ -238,49 +216,51 @@ if menu == "📄 Contract Analysis":
         </div>
         """, unsafe_allow_html=True)
     
+    
     if st.button("🚀 Analyze Contract", type="primary", disabled=not uploaded_file):
         with st.spinner("Analyzing contract terms..."):
             try:
-                # Upload to backend
                 files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                upload_response = requests.post(f"{BASE_URL}/upload", files=files, timeout=10)
+                upload_response = requests.post(f"{BASE_URL}/negotiation/upload", files=files, timeout=30)
                 
                 if upload_response.status_code == 200:
                     upload_data = upload_response.json()
-                    contract_id = upload_data.get("db_id")
                     
-                    if contract_id:
-                        st.session_state.contract_id = contract_id
-                        
-                        # Get SLA terms from backend
-                        sla_response = requests.post(f"{BASE_URL}/extract-sla/{contract_id}", timeout=30)
-                        
-                        if sla_response.status_code == 200:
-                            sla_data = sla_response.json()
-                            
-                            # Store in session state
-                            st.session_state.contract_profile = {
-                                "sla": sla_data.get("sla", {}),
-                                "contract_profile": sla_data.get("contract_profile", {})
-                            }
-                            
-                            st.success("✅ Contract analysis complete!")
-                            st.rerun()
-                        else:
-                            st.error(f"Failed to extract SLA: {sla_response.text}")
-                    else:
-                        st.error("No contract ID returned")
+                    st.session_state.sla_id = upload_data.get("sla_id")
+                    
+                    st.session_state.contract_profile = {
+                        "sla": upload_data.get("sla_display", {})
+                    }
+                    st.session_state.thread_id = None
+                    st.session_state.analysis = None
+                    st.success("✅ Contract analyzed!")
+
+                
+                    # AUTO-FETCH market comparison
+                    sla_id = st.session_state.sla_id
+                    
+                    if sla_id:
+                        with st.spinner("Fetching market intelligence..."):
+                            try:
+                                resp = requests.post(
+                                    f"{BASE_URL}/sla/{sla_id}/market-analysis",
+                                    timeout=30
+                                )
+                                if resp.status_code == 200:
+                                    st.session_state.analysis = resp.json()
+                                    st.success("✅ Market data ready! Go to **📊 Market Intelligence** tab.")
+                                else:
+                                    st.warning(f"Market fetch failed: {resp.status_code} — {resp.text[:200]}")
+                            except Exception as e:
+                                st.warning(f"Market fetch error: {str(e)}")
+                    
+                    st.rerun()
+
                 else:
                     st.error(f"Upload failed: {upload_response.text}")
-                    
-            except requests.exceptions.ConnectionError:
-                st.error("Cannot connect to backend. Make sure FastAPI is running on http://localhost:8000")
-            except requests.exceptions.Timeout:
-                st.error("Request timed out. Please try again.")
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-    
-    # ========== SHOW SLA FIELDS IN BOXES ==========
+
     if st.session_state.contract_profile and st.session_state.contract_profile.get('sla'):
         st.markdown("---")
         st.subheader("📋 Extracted Lease Terms")
@@ -289,22 +269,20 @@ if menu == "📄 Contract Analysis":
         
         # Define EXACT SLA fields to show (from your requirements)
         sla_field_display = {
-            "apr": "APR",
-            "lease_term_months": "Lease Term",
+            
+            "apr_percent": "APR (%)",
+            "term_months": "Lease Term (months)",
             "monthly_payment": "Monthly Payment",
-            "down_payment": "Down Payment",
+            "down_payment": "Down Payment", 
             "residual_value": "Residual Value",
-            "mileage_allowance": "Mileage Allowance",
-            "early_termination_clause": "Early Termination",
-            "purchase_option": "Purchase Option",
-            "late_fees": "Late Fees",
-
+            "mileage_allowance_yr": "Mileage/Year",
+            "early_termination_fee": "Early Termination",
+            "purchase_option_price": "Purchase Option",
+            "late_fee_policy": "Late Fees",
         }
-        
-        # Create 3 columns for the boxes
+
         cols = st.columns(3)
         
-        # Display each SLA field in a box
         field_count = 0
         
         for field_key, display_name in sla_field_display.items():
@@ -312,7 +290,7 @@ if menu == "📄 Contract Analysis":
             value = sla.get(field_key, "N/A")
             
             # Only show field if it has a value (not "N/A")
-            if value != "N/A":
+            if value not in ("N/A", None, ""):
                 with cols[field_count % 3]:
                     st.markdown(f"""
                     <div class="metric-card">
@@ -327,9 +305,274 @@ if menu == "📄 Contract Analysis":
                 
                 field_count += 1
         
-        # If no SLA fields were found
         if field_count == 0:
             st.info("No SLA terms were extracted from the contract.")
+    
+        if st.session_state.analysis:
+            st.success("✅ Market data is ready — go to **📊 Market Intelligence** tab to see price comparison and fairness score!")
+        else:
+            st.info("Market data not yet available.")
+            if st.button("⚡ Fetch Market Data Now", type="secondary"):
+                sla_id = st.session_state.sla_id
+                if sla_id:
+                    with st.spinner("Fetching..."):
+                        try:
+                            resp = requests.post(f"{BASE_URL}/sla/{sla_id}/market-analysis", timeout=30)
+                            if resp.status_code == 200:
+                                st.session_state.analysis = resp.json()
+                                st.success("✅ Done! Go to 📊 Market Intelligence tab.")
+                                st.rerun()
+                            else:
+                                st.error(f"Failed: {resp.status_code} — {resp.text[:200]}")
+                        except Exception as e:
+                            st.error(f"Error: {str(e)}")
+
+elif menu == "📊 Market Intelligence":
+    st.title("📊 Market Intelligence & Fairness Score")
+
+    if not st.session_state.sla_id:
+        st.warning("⚠️ No contract uploaded yet. Go to **Contract Analysis** first.")
+        st.stop()
+
+    # Fetch if not already fetched
+    if not st.session_state.analysis:
+        st.info("Market data not loaded yet. Fetching now...")
+        with st.spinner("Fetching market comparison..."):
+            try:
+                resp = requests.post(f"{BASE_URL}/sla/{st.session_state.sla_id}/market-analysis", timeout=30)
+                if resp.status_code == 200:
+                    st.session_state.analysis = resp.json()
+                    st.rerun()
+                else:
+                    st.error(f"Failed to fetch market data: {resp.status_code} — {resp.text[:300]}")
+                    st.stop()
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
+                st.stop()
+
+    analysis = st.session_state.analysis
+
+    def parse_price(val):
+        return float(str(val).replace('₹', '').replace(',', '').replace(' ', '').strip())
+
+    dealer_price = parse_price(analysis['dealer_price'])
+    market_price = parse_price(analysis['market_price'])
+    score_raw = analysis.get('fairness_score', '0/100')
+    score = int(str(score_raw).split('/')[0])
+    insight = analysis.get('insight', '')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+        <div style="background:#EFF6FF;border-radius:12px;padding:20px;text-align:center;border-top:4px solid #3B82F6;">
+            <div style="font-size:0.85rem;color:#6B7280;margin-bottom:8px;">DEALER PRICE</div>
+            <div style="font-size:1.8rem;font-weight:800;color:#3B82F6;">₹{dealer_price:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div style="background:#F0FDF4;border-radius:12px;padding:20px;text-align:center;border-top:4px solid #10B981;">
+            <div style="font-size:0.85rem;color:#6B7280;margin-bottom:8px;">MARKET PRICE</div>
+            <div style="font-size:1.8rem;font-weight:800;color:#10B981;">₹{market_price:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    col1, col2 = st.columns([3, 2])
+
+    with col1:
+        st.subheader("💰 Dealer Price vs Market Price")
+        chart_data = pd.DataFrame({
+            'Price Type': ['Dealer Price', 'Market price'],
+            'Amount': [dealer_price, market_price]
+        })
+        fig1 = px.bar(
+            chart_data, x='Price Type', y='Amount',
+            color='Price Type',
+            color_discrete_map={'Dealer Price': '#EF4444', 'Market price': '#10B981'},
+            text='Amount',
+            height=420
+        )
+        fig1.update_traces(texttemplate='₹%{text:,.0f}', textposition='outside', textfont_size=14)
+        fig1.update_layout(
+            showlegend=False,
+            yaxis_tickformat=',.0f',
+            yaxis_title='Price (₹)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(size=14)
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+
+    with col2:
+        st.subheader("📈 Fairness Score")
+
+        bar_color = '#10B981' if score >= 70 else '#F59E0B' if score >= 40 else '#EF4444'
+        fig_gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=score,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            title={'text': "Fairness Score", 'font': {'size': 18}},
+            gauge={
+                'axis': {'range': [0, 100], 'tickwidth': 2},
+                'bar': {'color': bar_color},
+                'steps': [
+                    {'range': [0, 40], 'color': '#FEE2E2'},
+                    {'range': [40, 70], 'color': '#FEF3C7'},
+                    {'range': [70, 100], 'color': '#D1FAE5'},
+                ],
+                'threshold': {
+                    'line': {'color': bar_color, 'width': 4},
+                    'thickness': 0.75,
+                    'value': score
+                }
+            }
+        ))
+        fig_gauge.update_layout(height=300, paper_bgcolor='rgba(0,0,0,0)', font=dict(size=14))
+        st.plotly_chart(fig_gauge, use_container_width=True)
+
+        label = "🟢 Great Deal!" if score >= 70 else "🟡 Room to Negotiate" if score >= 40 else "🔴 Overpriced"
+        st.markdown(f"<h2 style='text-align:center;margin-top:0;'>{label}</h2>", unsafe_allow_html=True)
+
+        diff = market_price - dealer_price
+        diff_color = '#10B981' if diff > 0 else '#EF4444'
+        diff_label = 'BELOW market 🎉' if diff > 0 else 'ABOVE market ⚠️'
+        st.markdown(f"""
+        <div style="text-align:center;background:#F8FAFC;border-radius:12px;padding:16px;margin-top:10px;border:2px solid {diff_color};">
+            <div style="font-size:0.9rem;color:#6B7280;">You are paying</div>
+            <div style="font-size:1.8rem;font-weight:800;color:{diff_color};">₹{abs(diff):,.0f}</div>
+            <div style="font-size:0.95rem;color:{diff_color};font-weight:600;">{diff_label}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.subheader("📊 Market Price Ranges vs Your Deal")
+
+    range_data = pd.DataFrame({
+        'Category': ['Market Low\n(-15%)', 'Market price', 'Market High\n(+15%)', 'Your Dealer Price'],
+        'Price': [market_price * 0.85, market_price, market_price * 1.15, dealer_price],
+        'Color': ['#F59E0B', '#10B981', '#EF4444', '#8B5CF6']
+    })
+
+    fig2 = px.bar(
+        range_data, x='Category', y='Price',
+        color='Category',
+        color_discrete_map={
+            'Market Low\n(-15%)': '#F59E0B',
+            'Market price': '#10B981',
+            'Market High\n(+15%)': '#EF4444',
+            'Your Dealer Price': '#8B5CF6'
+        },
+        text='Price',
+        height=480
+    )
+    fig2.update_traces(texttemplate='₹%{text:,.0f}', textposition='outside', textfont_size=13)
+    fig2.update_layout(
+        showlegend=False,
+        yaxis_tickformat=',.0f',
+        yaxis_title='Price (₹)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=14)
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+
+    # ── Insight banner ──
+    st.markdown("---")
+    insight_color = '#D1FAE5' if diff > 0 else '#FEE2E2'
+    border_color = '#10B981' if diff > 0 else '#EF4444'
+    st.markdown(f"""
+    <div style="background:{insight_color};border-left:6px solid {border_color};border-radius:8px;padding:20px;font-size:1.1rem;font-weight:600;">
+        💡 {insight}
+    </div>
+    """, unsafe_allow_html=True)
+
+    if diff > 0:
+        st.balloons()
+    st.markdown("---")
+    st.subheader("📊 Score Breakdown")
+    
+    breakdown = analysis.get('score_breakdown', {})
+    
+    if breakdown:
+        # Create data for bar chart
+        components = ['Price (40%)', 'APR (25%)', 'Fees (15%)', 'Term (20%)']
+        scores = [
+            breakdown.get('price_score', 0),
+            breakdown.get('apr_score', 0),
+            breakdown.get('fees_score', 0),
+            breakdown.get('term_score', 0)
+        ]
+        colors = ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6']
+        
+        # Create horizontal bar chart
+        fig = go.Figure()
+        
+        for i, (comp, score, color) in enumerate(zip(components, scores, colors)):
+            fig.add_trace(go.Bar(
+                y=[comp],
+                x=[score],
+                name=comp,
+                orientation='h',
+                marker=dict(color=color),
+                text=[f"{score}%"],
+                textposition='outside',
+                textfont=dict(size=14)
+            ))
+        
+        fig.update_layout(
+            title="Component Scores",
+            xaxis=dict(
+                title="Score (%)",
+                range=[0, 100],
+                gridcolor='#E5E7EB',
+                tickfont=dict(size=12)
+            ),
+            yaxis=dict(
+                title="",
+                tickfont=dict(size=14)
+            ),
+            barmode='group',
+            height=300,
+            showlegend=False,
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            margin=dict(l=150, r=50, t=50, b=50)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        # Insight box based on lowest score
+        lowest_score = min(scores)
+        lowest_component = components[scores.index(lowest_score)]
+
+        if lowest_score < 85:
+            st.markdown(f"""
+            <div style="background:#FEF3C7;border-left:6px solid #F59E0B;border-radius:8px;padding:16px;margin-top:10px;">
+            <strong>💡 Negotiation Tip:</strong> Your weakest area is <strong>{lowest_component}</strong> 
+            with a score of <strong>{lowest_score}</strong>. 
+            Focus your negotiation on improving this term for the best outcome.
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="background:#D1FAE5;border-left:6px solid #10B981;border-radius:8px;padding:16px;margin-top:10px;">
+            <strong>✅ All Good!</strong> All components score above 85. Your contract terms are fair across the board.
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    if st.button("🔄 Refresh Market Data", type="secondary"):
+        with st.spinner("Refreshing..."):
+            try:
+                resp = requests.post(f"{BASE_URL}/sla/{st.session_state.sla_id}/market-analysis", timeout=30)
+                if resp.status_code == 200:
+                    st.session_state.analysis = resp.json()
+                    st.rerun()
+                else:
+                    st.error(f"Failed: {resp.text[:200]}")
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
+
 
 # ==================== VIN DETAILS ====================
 elif menu == "🆔 VIN Details":
@@ -366,16 +609,28 @@ elif menu == "🆔 VIN Details":
                                 make = next((r["Value"] for r in results if r["Variable"] == "Make"), "")
                                 model = next((r["Value"] for r in results if r["Variable"] == "Model"), "")
                                 year = next((r["Value"] for r in results if r["Variable"] == "Model Year"), "")
+
                                 vehicle_type = next((r["Value"] for r in results if r["Variable"] == "Vehicle Type"), "")
+                                fuel_type = next((r["Value"] for r in results if r["Variable"] == "Fuel Type - Primary"), "")
+                                engine = next((r["Value"] for r in results if r["Variable"] == "Displacement (L)"), "")
                                 
-                                # Show in columns
-                                col1, col2, col3, col4 = st.columns(4)
+                                doors = next((r["Value"] for r in results if r["Variable"] == "Doors"), "")
+                                plant_country = next((r["Value"] for r in results if r["Variable"] == "Plant Country"), "")
                                 
                                 # Show N/A if value is empty (dummy VIN)
-                                col1.metric("Make", make if make else "N/A")
-                                col2.metric("Model", model if model else "N/A")
-                                col3.metric("Year", year if year else "N/A")
-                                col4.metric("Type", vehicle_type if vehicle_type else "N/A")
+                                col1, col2, col3 = st.columns(3)
+                                col1.metric("Make", make or "N/A")
+                                col2.metric("Model", model or "N/A")
+                                col3.metric("Year", year or "N/A")
+
+                                col1, col2, col3 = st.columns(3)
+                                col1.metric("Type", vehicle_type or "N/A")
+                                col2.metric("Fuel Type", fuel_type or "N/A")
+                                col3.metric("Engine (L)", engine or "N/A")
+
+                                col1, col2 = st.columns(2)
+                                col1.metric("Doors", doors or "N/A")
+                                col2.metric("Made In", plant_country or "N/A")
                                 
                                 # Show warning for dummy VIN
                                 if not make and not model:
@@ -408,147 +663,72 @@ elif menu == "💬 Negotiation Assistant":
     st.markdown("---")
     
     # Check if contract uploaded
-    if not st.session_state.contract_id:
+    if not st.session_state.sla_id:
         st.warning("⚠️ **No contract uploaded yet!**")
         st.info("Please upload your lease agreement in the **Contract Analysis** tab first.")
     else:
-        # Context from contract
-        if st.session_state.contract_profile:
-            p = st.session_state.contract_profile
-            sla = p.get('sla', {})
-            context = "Based on your lease contract and market data."
-        else:
-            context = "Based on your contract and market data."
-        
-        st.markdown(f"""
-        <div style="text-align: center; color: #666; padding: 15px; font-style: italic; 
-                    background: #F8FAFC; border-radius: 8px; margin: 20px 0;">
-            {context}
-        </div>
-        """, unsafe_allow_html=True)
-        
+        st.markdown('<div style="text-align:center;color:#666;padding:15px;font-style:italic;background:#F8FAFC;border-radius:8px;margin:20px 0;">Based on your lease contract and market data.</div>', unsafe_allow_html=True)
         st.markdown("---")
-        
-        # Initialize welcome message only once
-        if not st.session_state.chat_history:
-            welcome_message = "I'm your negotiation assistant. How can I help you prepare for your conversation with the dealer? You can ask for talking points, questions to ask, or ways to respond to common dealer tactics."
-            st.session_state.chat_history.append({"role": "assistant", "content": welcome_message})
 
-        # Display chat history
+        if not st.session_state.chat_history:
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": "I'm your negotiation assistant. Ask me for talking points, questions to ask the dealer, or how to respond to common dealer tactics."
+            })
+
         for msg in st.session_state.chat_history:
             if msg["role"] == "user":
-                st.markdown(f"""
-                <div style="background: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #10B981;">
-                    <p style="font-size: 1.1rem; line-height: 1.6; color: #1F2937;">
-                        {msg["content"]}
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<div style="background:#F3F4F6;padding:20px;border-radius:10px;margin:10px 0;border-left:4px solid #10B981;"><p style="font-size:1rem;color:#1F2937;margin:0;">{msg["content"]}</p></div>""", unsafe_allow_html=True)
             else:
-                st.markdown(f"""
-                <div style="background: #F0F9FF; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #3B82F6;">
-                            <p style="font-size: 1.1rem; line-height: 1.6; color: #1F2937;">
-                        {msg["content"]}
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-        
+                st.markdown(f"""<div style="background:#F0F9FF;padding:20px;border-radius:10px;margin:10px 0;border-left:4px solid #3B82F6;"><p style="font-size:1rem;color:#1F2937;margin:0;">{msg["content"]}</p></div>""", unsafe_allow_html=True)
+
         st.markdown("---")
-        
-        # Chat input
+
         if prompt := st.chat_input("Ask for negotiation tips..."):
-            # Add user message
+            if st.session_state.thread_id is None:
+                with st.spinner("Running negotiation analysis..."):
+                    try:
+                        negotiate_response = requests.post(
+                            f"{BASE_URL}/negotiate/sla/{st.session_state.sla_id}", timeout=30
+                        )
+                        if negotiate_response.status_code == 200:
+                            data = negotiate_response.json()
+                            st.session_state.thread_id = data.get("thread_id")
+                        else:
+                            st.error("Failed to run negotiation analysis")
+                            st.stop()
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+                        st.stop()
+
             st.session_state.chat_history.append({"role": "user", "content": prompt})
-            
+
             with st.spinner("Getting response..."):
                 try:
-                    # Call backend
                     chat_response = requests.post(
-                        f"{BASE_URL}/chat/{st.session_state.contract_id}",
+                        f"{BASE_URL}/chat/{st.session_state.thread_id}",
                         json={"message": prompt},
                         timeout=30
                     )
-                    
                     if chat_response.status_code == 200:
-                        response_data = chat_response.json()
-                        ai_response = response_data.get("response", "I couldn't generate a response.")
-                        
+                        ai_response = chat_response.json().get("response", "I couldn't generate a response.")
                     else:
                         ai_response = generate_demo_response(prompt)
-                        
-                except requests.exceptions.ConnectionError:
-                    st.error("Cannot connect to backend. Using demo response.")
-                    ai_response = generate_demo_response(prompt)
-                except requests.exceptions.Timeout:
-                    st.error("Request timed out. Using demo response.")
-                    ai_response = generate_demo_response(prompt)
-                except Exception as e:
-                    st.error(f"Error: {str(e)}. Using demo response.")
+                except Exception:
                     ai_response = generate_demo_response(prompt)
 
-                st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
-                
-                # Rerun to show new messages
-                st.rerun()
-                   
-        
-        # Clear chat button
-        if len(st.session_state.chat_history) > 1:
+            st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
+            st.rerun()
+
+        if st.session_state.thread_id and len(st.session_state.chat_history) > 1:
             st.markdown("---")
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 if st.button("🗑️ Clear Chat History", use_container_width=True):
                     st.session_state.chat_history = []
+                    st.session_state.thread_id = None
                     st.rerun()
-
-# ==================== DASHBOARD ====================
-elif menu == "🏠 Dashboard":
-    st.markdown("""
-    <div style="text-align: center; padding: 20px 0;">
-        <h1>Contract Analysis</h1>
-        <h3 style="color: #666; font-weight: normal;">
-            Upload your car lease or loan contract (PDF or image) to get an instant AI-powered review.
-        </h3>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="metric-card" style="border-left-color: #10B981;">
-        <h4 style="color: #10B981;">🔒 Secure & Private</h4>
-        <p>Your documents are processed securely and are not stored after analysis.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    if not st.session_state.contract_id:
-        st.info("📁 No contract uploaded yet. Go to **Contract Analysis** to begin.")
-    else:
-        st.success("✅ Contract uploaded and analyzed!")
         
-        # Show contract status
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown(f"""
-            <div class="metric-card">
-                <h4>Document Status</h4>
-                <h2 style="color: #10B981;">✅ Analyzed</h2>
-            </div>
-            """, unsafe_allow_html=True)
-        with col2:
-            st.markdown(f"""
-            <div class="metric-card">
-                <h4>Next Step</h4>
-                <p>Go to <strong>Negotiation Assistant</strong> to chat about your contract</p>
-            </div>
-            """, unsafe_allow_html=True)
-        with col3:
-            st.markdown(f"""
-            <div class="metric-card">
-                <h4>SLA Fields</h4>
-                <p>{len(st.session_state.contract_profile.get('sla', {}))} terms extracted</p>
-            </div>
-            """, unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("---")
@@ -556,5 +736,5 @@ st.markdown("""
 <div style="text-align: center; color: #666; padding: 20px;">
     <p>📑 <strong>ContractClarity</strong> • AI-Powered Lease Analysis</p>
 </div>
-
 """, unsafe_allow_html=True)
+
