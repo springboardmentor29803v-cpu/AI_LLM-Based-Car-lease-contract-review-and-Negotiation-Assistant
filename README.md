@@ -180,7 +180,6 @@ http://localhost:8501
 ## Contributors
 
 * Vaishnavi S
-* Project Team Members
 
 ## License
 
